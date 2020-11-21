@@ -1,0 +1,44 @@
+version: '3'
+services:
+  nginx:
+    image: nginx:latest
+    ports:
+      - "8025:80"
+    volumes:
+      - .:/src
+      - ./contrib/nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - php-fpm
+      - mysql
+  php-fpm:
+    build:
+      context: .
+      dockerfile: contrib/dockerfiles/Dockerfile
+      args:
+        GITHUB_API_TOKEN: ${GITHUB_API_TOKEN}
+    volumes:
+      - ./public:/src/public
+      - ./app:/src/app
+      - ./bootstrap/app.php:/src/bootstrap/app.php
+      - ./config:/src/config
+      - ./database:/src/database
+      - ./resources:/src/resources
+      - ./routes:/src/routes
+      - ./tests:/src/tests
+      - ./storage:/src/storage
+      - ./composer.json:/src/composer.json
+      - ./composer.lock:/src/composer.lock
+      - ./.env:/src/.env
+    depends_on:
+      - mysql
+  mysql:
+    image: "mysql:5"
+    ports:
+      - "33070:3306"
+    volumes:
+      - ./contrib/mysql/conf.d:/etc/mysql/conf.d
+    environment:
+      MYSQL_DATABASE: homestead
+      MYSQL_USER: homestead
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: supersecret
