@@ -1,3 +1,9 @@
+# Node modules
+FROM node:12-stretch as node
+WORKDIR /src
+COPY . ./
+RUN npm install && npm run dev
+
 FROM php:7.4-fpm
 
 # Copy composer.lock and composer.json
@@ -36,13 +42,15 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 
 ARG GITHUB_API_TOKEN
 ENV PATH="$PATH:/src/vendor/bin"
-COPY --from=composer /usr/bin/composer /usr/bin/composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 COPY composer.* ./
 RUN composer config -g github-oauth.github.com $GITHUB_API_TOKEN && \
     composer install --no-scripts --no-autoloader --no-interaction --no-dev
 
 # Copy existing application directory contents
 COPY . /src
+
+COPY --from=node /src/public /src/public
 
 RUN chgrp -R www-data storage bootstrap/cache && chmod -R ug+rwx storage bootstrap/cache && \
     composer install --no-scripts --no-autoloader --no-interaction --dev && \

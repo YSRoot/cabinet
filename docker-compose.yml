@@ -31,6 +31,20 @@ services:
       - ./.env:/src/.env
     depends_on:
       - mysql
+      - node
+  node:
+    build:
+      context: .
+      dockerfile: contrib/dockerfiles/Dockerfile
+      target: node
+    command: ['yarn', 'run', 'watch']
+    volumes:
+      - ./resources:/src/resources
+      - ./public:/src/public
+      - ./package.json:/src/package.json
+      - ./package-lock.json:/src/package-lock.json
+      - ./tailwind.config.js:/src/tailwind.config.js
+      - ./webpack.config.js:/src/webpack.config.js
   mysql:
     image: "mysql:5"
     ports:
